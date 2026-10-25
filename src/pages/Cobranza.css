@@ -1,0 +1,67 @@
+.cobranza-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.tabla-cobranza {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-cobranza th, .tabla-cobranza td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+.tabla-cobranza th {
+    background-color: #f4f4f4;
+}
+
+.celda-numero {
+    font-weight: bold;
+    font-size: 18px;
+    color: #ffc107; /* Amarillo para identificar que están pendientes */
+    text-align: center;
+}
+
+.celda-acciones {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-whatsapp {
+    background-color: #25D366;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-pagar {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.input-archivo {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.btn-confirmar {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
