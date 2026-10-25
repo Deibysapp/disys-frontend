@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/super-master'; // Asumiendo que esta es la ruta base para el Super Master
+const API_URL = 'https://disys-backend.onrender.com'; // Asumiendo que esta es la ruta base para el Super Master
 
 // Registrar un nuevo usuario Master
 export const crearMaster = async (datosMaster, token) => {

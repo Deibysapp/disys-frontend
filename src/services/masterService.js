@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/master';
+const API_URL = 'https://disys-backend.onrender.com';
 
 // Extraer los datos reales para el Dashboard
 export const obtenerDashboardData = async (sorteoId, token) => {

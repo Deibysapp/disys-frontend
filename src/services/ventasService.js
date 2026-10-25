@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/ventas';
+const API_URL = 'https://disys-backend.onrender.com';
 
 // Función para reservar un número en la bolsa general
 export const apartarNumero = async (datosReserva, token) => {
