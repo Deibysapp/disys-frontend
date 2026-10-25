@@ -1,8 +1,9 @@
-const API_URL = 'https://disys-backend.onrender.com'; // Asumiendo que esta es la ruta base para el Super Master
+const API_URL = 'https://disys-backend.onrender.com';
 
-// Registrar un nuevo usuario Master
+// Función para registrar al usuario Master
 export const crearMaster = async (datosMaster, token) => {
-    const response = await fetch(`${API_URL}/crear-master`, {
+    // La ruta debe coincidir con la que creaste en tu backend (ej. /api/super-master/crear)
+    const response = await fetch(`${API_URL}/api/super-master/crear`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
