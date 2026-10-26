@@ -3,33 +3,27 @@ import { obtenerDashboardData } from '../services/masterService';
 import './MasterDashboard.css';
 
 const MasterDashboard = () => {
-    const [resumen, setResumen] = useState({
-        total_vendidos: 0,
-        total_pagados: 0,
-        total_pendientes: 0
-    });
-
+    const [resumen, setResumen] = useState({ total_vendidos: 0, total_pagados: 0, total_pendientes: 0 });
     const [vendedores, setVendedores] = useState([]);
     const [cargando, setCargando] = useState(true);
+
+    const [mostrarModalVendedor, setMostrarModalVendedor] = useState(false);
+    const [formVendedor, setFormVendedor] = useState({ nombre: '', apellido: '', username: '', pin: '' });
 
     useEffect(() => {
         const cargarDatos = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const sorteoId = 1; // Asumimos el Sorteo 1 como activo
-                
+                const sorteoId = 1; 
                 const respuesta = await obtenerDashboardData(sorteoId, token);
-                
-                // Si la estructura del backend envía las métricas, las aplicamos
                 if (respuesta.resumen) setResumen(respuesta.resumen);
                 if (respuesta.vendedores) setVendedores(respuesta.vendedores);
             } catch (error) {
-                console.error('Error al sincronizar el dashboard:', error);
+                console.error('Error al sincronizar:', error);
             } finally {
                 setCargando(false);
             }
         };
-
         cargarDatos();
     }, []);
 
@@ -37,14 +31,11 @@ const MasterDashboard = () => {
         try {
             const sorteoId = 1;
             const token = localStorage.getItem('token');
-
-            const response = await fetch(`http://localhost:3000/api/reportes/descargar-excel/${sorteoId}`, {
+            const response = await fetch(`https://disys-backend.onrender.com/api/reportes/descargar-excel/${sorteoId}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (!response.ok) throw new Error('Error al generar el respaldo');
-
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -55,7 +46,33 @@ const MasterDashboard = () => {
             window.URL.revokeObjectURL(url);
             a.remove();
         } catch (error) {
-            alert('Hubo un problema al descargar el Excel. Verifica tu conexión.');
+            alert('Hubo un problema al descargar el Excel.');
+        }
+    };
+
+    const handleCrearVendedor = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('https://disys-backend.onrender.com/api/master/crear-vendedor', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formVendedor)
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert('Vendedor registrado exitosamente en DiSys');
+                setMostrarModalVendedor(false);
+                window.location.reload(); 
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error de conexión con el servidor.');
         }
     };
 
@@ -63,10 +80,36 @@ const MasterDashboard = () => {
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h2>Panel de Control Master - DiSys</h2>
-                <button className="btn-excel" onClick={handleDescargarExcel}>
-                    📊 Descargar Respaldo Excel
-                </button>
+                <div className="header-botones">
+                    <button className="btn-accion azul" onClick={() => setMostrarModalVendedor(true)}>
+                        + Crear Vendedor
+                    </button>
+                    <button className="btn-accion gris" onClick={() => alert('Módulo de sorteos en construcción')}>
+                        ⚙️ Configurar Rifa
+                    </button>
+                    <button className="btn-excel" onClick={handleDescargarExcel}>
+                        📊 Descargar Respaldo
+                    </button>
+                </div>
             </div>
+
+            {mostrarModalVendedor && (
+                <div className="modal-overlay">
+                    <div className="modal-contenido">
+                        <h3>Registrar Nuevo Vendedor</h3>
+                        <form onSubmit={handleCrearVendedor}>
+                            <input type="text" placeholder="Nombre" required onChange={e => setFormVendedor({...formVendedor, nombre: e.target.value})} />
+                            <input type="text" placeholder="Apellido" required onChange={e => setFormVendedor({...formVendedor, apellido: e.target.value})} />
+                            <input type="text" placeholder="Usuario (Ej: juan.ventas)" required onChange={e => setFormVendedor({...formVendedor, username: e.target.value})} />
+                            <input type="password" placeholder="PIN (4 dígitos)" required onChange={e => setFormVendedor({...formVendedor, pin: e.target.value})} />
+                            <div className="modal-botones">
+                                <button type="button" onClick={() => setMostrarModalVendedor(false)}>Cancelar</button>
+                                <button type="submit" className="btn-guardar">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {cargando ? (
                 <p>Cargando métricas de ventas...</p>
