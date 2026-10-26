@@ -7,8 +7,13 @@ const MasterDashboard = () => {
     const [vendedores, setVendedores] = useState([]);
     const [cargando, setCargando] = useState(true);
 
+    // Estados para modales
     const [mostrarModalVendedor, setMostrarModalVendedor] = useState(false);
+    const [mostrarModalSorteo, setMostrarModalSorteo] = useState(false);
+
+    // Estados para formularios
     const [formVendedor, setFormVendedor] = useState({ nombre: '', apellido: '', username: '', pin: '' });
+    const [formSorteo, setFormSorteo] = useState({ nombre_sorteo: '', cantidad_numeros: '', precio_boleto: '', fecha_sorteo: '' });
 
     useEffect(() => {
         const cargarDatos = async () => {
@@ -56,13 +61,9 @@ const MasterDashboard = () => {
             const token = localStorage.getItem('token');
             const response = await fetch('https://disys-backend.onrender.com/api/master/crear-vendedor', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(formVendedor)
             });
-            
             const data = await response.json();
             if (data.success) {
                 alert('Vendedor registrado exitosamente en DiSys');
@@ -76,6 +77,27 @@ const MasterDashboard = () => {
         }
     };
 
+    const handleCrearSorteo = async (e) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('https://disys-backend.onrender.com/api/master/crear-sorteo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(formSorteo)
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Rifa configurada exitosamente en DiSys');
+                setMostrarModalSorteo(false);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error de conexión con el servidor al configurar la rifa.');
+        }
+    };
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
@@ -84,7 +106,7 @@ const MasterDashboard = () => {
                     <button className="btn-accion azul" onClick={() => setMostrarModalVendedor(true)}>
                         + Crear Vendedor
                     </button>
-                    <button className="btn-accion gris" onClick={() => alert('Módulo de sorteos en construcción')}>
+                    <button className="btn-accion gris" onClick={() => setMostrarModalSorteo(true)}>
                         ⚙️ Configurar Rifa
                     </button>
                     <button className="btn-excel" onClick={handleDescargarExcel}>
@@ -93,6 +115,7 @@ const MasterDashboard = () => {
                 </div>
             </div>
 
+            {/* Modal Crear Vendedor */}
             {mostrarModalVendedor && (
                 <div className="modal-overlay">
                     <div className="modal-contenido">
@@ -105,6 +128,25 @@ const MasterDashboard = () => {
                             <div className="modal-botones">
                                 <button type="button" onClick={() => setMostrarModalVendedor(false)}>Cancelar</button>
                                 <button type="submit" className="btn-guardar">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Configurar Sorteo */}
+            {mostrarModalSorteo && (
+                <div className="modal-overlay">
+                    <div className="modal-contenido">
+                        <h3>Configurar Nueva Rifa</h3>
+                        <form onSubmit={handleCrearSorteo}>
+                            <input type="text" placeholder="Nombre (Ej: Gran Rifa Navideña)" required onChange={e => setFormSorteo({...formSorteo, nombre_sorteo: e.target.value})} />
+                            <input type="number" placeholder="Cantidad total de números" required onChange={e => setFormSorteo({...formSorteo, cantidad_numeros: e.target.value})} />
+                            <input type="number" step="0.01" placeholder="Precio por boleto ($)" required onChange={e => setFormSorteo({...formSorteo, precio_boleto: e.target.value})} />
+                            <input type="date" required onChange={e => setFormSorteo({...formSorteo, fecha_sorteo: e.target.value})} title="Fecha del sorteo" />
+                            <div className="modal-botones">
+                                <button type="button" onClick={() => setMostrarModalSorteo(false)}>Cancelar</button>
+                                <button type="submit" className="btn-guardar">Guardar Rifa</button>
                             </div>
                         </form>
                     </div>
