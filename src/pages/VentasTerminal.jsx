@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apartarNumero, obtenerEstadoBoletos } from '../services/ventasService';
+import { apartarNumero, obtenerEstadoBoletos, obtenerSorteoActivo } from '../services/ventasService';
 import './VentasTerminal.css';
 
 const VentasTerminal = () => {
@@ -8,25 +8,26 @@ const VentasTerminal = () => {
     const [formData, setFormData] = useState({ nombre: '', cedula: '', telefono: '', direccion: '' });
     const [errorMensaje, setErrorMensaje] = useState('');
     const [cargando, setCargando] = useState(true);
-
-    // Datos temporales del sorteo para la cabecera
-    const sorteo = { nombre_sorteo: "Gran Rifa", precio_boleto: 20.00, loteria: "Triple A", premios: "1er Premio: Moto" };
+    const [sorteo, setSorteo] = useState(null);
 
     useEffect(() => {
-        const cargarGrilla = async () => {
+        const cargarDatos = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const sorteoId = 1; 
-                const respuesta = await obtenerEstadoBoletos(sorteoId, token);
-                const boletosOcupados = respuesta.data || [];
+                const sorteoId = 1; // Asumimos el ID 1 temporalmente
+
+                // 1. Cargar datos reales de la rifa
+                const resSorteo = await obtenerSorteoActivo(sorteoId, token);
+                if (resSorteo.success) setSorteo(resSorteo.data);
+
+                // 2. Cargar estado de la cuadrícula
+                const resBoletos = await obtenerEstadoBoletos(sorteoId, token);
+                const boletosOcupados = resBoletos.data || [];
 
                 const grillaReal = Array.from({ length: 100 }, (_, i) => {
                     const numeroString = i.toString().padStart(2, '0');
                     const boletoEnBD = boletosOcupados.find(b => b.numero === numeroString);
-                    return { 
-                        numero: numeroString, 
-                        estado: boletoEnBD ? boletoEnBD.estado : 'Disponible' 
-                    };
+                    return { numero: numeroString, estado: boletoEnBD ? boletoEnBD.estado : 'Disponible' };
                 });
                 setBoletos(grillaReal);
             } catch (error) {
@@ -35,7 +36,7 @@ const VentasTerminal = () => {
                 setCargando(false);
             }
         };
-        cargarGrilla();
+        cargarDatos();
     }, []);
 
     const toggleNumero = (boleto) => {
@@ -74,12 +75,13 @@ const VentasTerminal = () => {
     };
 
     if (cargando) return <p>Cargando terminal de ventas...</p>;
+    if (!sorteo) return <p>No se encontró la configuración del sorteo.</p>;
 
     return (
         <div className="terminal-container">
             <div className="terminal-header">
                 <h2>{sorteo.nombre_sorteo}</h2>
-                <p>Valor por ticket: ${sorteo.precio_boleto.toFixed(2)} | Lotería: {sorteo.loteria}</p>
+                <p>Valor por ticket: ${parseFloat(sorteo.precio_boleto).toFixed(2)} | Lotería: {sorteo.loteria}</p>
                 <p className="premios-info">🎁 {sorteo.premios}</p>
             </div>
 
@@ -109,7 +111,7 @@ const VentasTerminal = () => {
                     <h3>Resumen de Venta</h3>
                     {errorMensaje && <p style={{color: 'red', fontWeight: 'bold'}}>{errorMensaje}</p>}
                     <p>Número seleccionado: <strong>{numeroSeleccionado || 'Ninguno'}</strong></p>
-                    <p>Total a pagar: <strong className="total-pago">${numeroSeleccionado ? sorteo.precio_boleto.toFixed(2) : '0.00'}</strong></p>
+                    <p>Total a pagar: <strong className="total-pago">${numeroSeleccionado ? parseFloat(sorteo.precio_boleto).toFixed(2) : '0.00'}</strong></p>
                     
                     <form onSubmit={handleReservar} className="form-venta">
                         <input type="text" placeholder="Nombre completo" required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} />
